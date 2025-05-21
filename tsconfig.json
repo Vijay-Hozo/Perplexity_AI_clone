@@ -1,15 +1,8 @@
 {
   "compilerOptions": {
-    "types": [
-      "react",
-      "react-dom"
-    ],
+    "types": ["react", "react-dom"],
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -28,6 +21,7 @@
     ]
   },
   "include": [
+    "types/jsx.d.ts",
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
@@ -36,7 +30,5 @@
     "inngest/client.js",
     "app/(routes)/discover/page.jsx"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
