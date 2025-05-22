@@ -43,20 +43,18 @@ const DisplayResult = ({ searchInputRecord }) => {
   const [userInput, setUserInput] = useState("");
 
   useEffect(() => {
-    if (searchInputRecord?.Chats?.length === 0) {
-      GetSearchApiResult();
-    } else {
-      GetSearchRecords();
-    }
+    searchInputRecord?.Chats?.length == 0
+      ? GetSearchApiResult()
+      : GetSearchRecords();
     setSearchResult(searchInputRecord);
     console.log("searchInputRecord", searchInputRecord);
   }, [searchInputRecord]);
 
   const GetSearchApiResult = async () => {
-    // const searchResp = SEARCH_RESULT;
+    const inputToUse = userInput || searchInputRecord?.searchinput;
 
     const result = await axios.post("/api/brave-search-api", {
-      searchInput: searchInputRecord?.searchinput,
+      searchInput: inputToUse,
       searchType: searchInputRecord?.searchType ?? "Search",
     });
 
@@ -77,11 +75,10 @@ const DisplayResult = ({ searchInputRecord }) => {
         {
           libId: libId,
           searchResult: formattedResult,
-          searchInput: searchInputRecord?.searchinput,
+          searchInput: inputToUse,
         },
       ])
       .select();
-    await GetSearchRecords();
 
     if (error) {
       console.error("Supabase insert error:", error);
@@ -91,6 +88,8 @@ const DisplayResult = ({ searchInputRecord }) => {
     if (data && data.length > 0) {
       await GenerateAiResponse(formattedResult, data[0].id);
     }
+
+    await GetSearchRecords();
   };
 
   const GenerateAiResponse = async (formattedResult, recordId) => {
@@ -116,21 +115,24 @@ const DisplayResult = ({ searchInputRecord }) => {
     }, 1000);
   };
 
-  const GetSearchRecords = async () => {
-    let { data, error } = await supabase
-      .from("Library")
-      .select("*,Chats(*)")
-      .eq("libid", libId)
-      .order('id',{foreignTable :'Chats', ascending:true})
+ const GetSearchRecords = async () => {
+  let { data, error } = await supabase
+    .from("Library")
+    .select("*, Chats(*)")
+    .eq("libid", libId)
+    .order("id", { foreignTable: "Chats", ascending: true }); 
 
-    setSearchResult(data[0]);
-  };
+  if (error) {
+    console.error("Supabase error:", error);
+    return;
+  }
+
+  setSearchResult(data?.[0]); 
+};
+
 
   return (
     <div className="mt-7">
-      {/* <h2 className="font-medium text-3xl line-clamp-2">
-        {searchInputRecord?.searchinput}
-      </h2> */}
 
       {searchResult?.Chats?.map((chat, index) => (
         <div key={index}>
@@ -174,7 +176,6 @@ const DisplayResult = ({ searchInputRecord }) => {
             ) : activeTab === "Sources" ? (
               <SourceListTab chat={chat} />
             ) : null}
-            {/* Add more tab content as needed */}
           </div>
           <hr className="my-5" />
         </div>
@@ -186,8 +187,13 @@ const DisplayResult = ({ searchInputRecord }) => {
           className="outline-none"
           onChange={(e) => setUserInput(e.target.value)}
         />
-        {userInput.length && (
-          <Button onClick={GetSearchApiResult}>
+        {userInput?.length && (
+          <Button
+            onClick={() => {
+              GetSearchApiResult();
+              setUserInput("");
+            }}
+          >
             <Send />
           </Button>
         )}
